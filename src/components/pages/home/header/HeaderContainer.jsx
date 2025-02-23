@@ -4,11 +4,11 @@ import React, { Fragment } from "react"
 const HeaderContainer = ({ t, changeLanguage, resetUserData, setDisplayMode, isDarkMode, isUserDataEntered, userName }) => (
   <header className="header-container flex flex-nowrap items-center justify-between bg-cyan-500 dark:bg-cyan-700 w-full p-1 shadow-xl z-20 duration-200">
     <section className="header-title grow flex items-center p-1">
-      <img className="h-8 object-contain drop-shadow-md px-1" src={`${import.meta.env.BASE_URL}images/swag-logo.png`} alt="SWAG Logo" />
+      <img className="h-8 object-contain drop-shadow-md px-1" src={`${import.meta.env.BASE_URL}images/swag-logo.png`} alt="App Logo" />
       <h3 className="hidden lg:block grow px-2 font-serif text-white">{t('app_name')}</h3>
     </section>
     <section className="w-fit flex items-center pl-1">
-      <a href="https://github.com/Vidi005/SWAG" title="Repository" target="_blank" rel="noreferrer noopener">
+      <a href="https://github.com/Vidi005/Static-Website-AI-Generator" title="Repository" target="_blank" rel="noreferrer noopener">
         <img className="h-10 mr-1 md:mr-2 p-2 object-contain hover:bg-black/25 focus-visible:ring-2 focus-visible:ring-white/75 duration-200 rounded-md" src={`${import.meta.env.BASE_URL}images/github-icon.png`} alt="Github" />
       </a>
       <Switch

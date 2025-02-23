@@ -19,7 +19,7 @@ const FullPreviewPage = ({ t }) => {
   }
   if (getSavedWebPreview()?.includes('<html')) {
     return (
-      <iframe title="Web Preview" srcDoc={getSavedWebPreview()} className="h-screen w-full overflow-auto duration-200" frameborder="0">
+      <iframe title="Web Preview" srcDoc={getSavedWebPreview()} className="h-screen w-full overflow-auto duration-200" frameBorder="0">
         <Helmet>
           <title>{t('preview_page_title')}</title>
           <link rel="canonical" href={location.toString()}/>
