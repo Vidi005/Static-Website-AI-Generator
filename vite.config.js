@@ -14,7 +14,7 @@ export default defineConfig({
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
         name: 'Static Website AI Generator',
-        short_name: 'SWAG',
+        short_name: 'Static Website AI Generator',
         description: 'Welcome to Static Website AI Generator. A Web-based AI generator for static websites using Gemini API AI.',
         theme_color: '#0e7490',
         orientation: 'portrait',
