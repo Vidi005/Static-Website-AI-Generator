@@ -1,4 +1,4 @@
-# Static Website AI Generator (SWAG)
+# Static Website AI Generator
 Generate front-end static websites and various web UI components through user prompts or image inputs using Gemini AI.
 
 ### App Usage Instructions
@@ -9,29 +9,29 @@ Before using this web app, please follow the steps below.
 3. Create a project using <a href="https://console.cloud.google.com" target="_blank" rel="noopener noreferrer">Google Cloud Studio</a>
 4. Generate an API key within your project
 <p align="center">
-  <img src="https://github.com/Vidi005/SWAG/blob/main/Screenshots/Screenshot-generate-api-key.png" width="100%">
+  <img src="https://github.com/Vidi005/Static-Website-AI-Generator/blob/main/Screenshots/Screenshot-generate-api-key.png" width="100%">
 </p>
 5. Copy your Gemini API key.
 <p align="center">
-  <img src="https://github.com/Vidi005/SWAG/blob/main/Screenshots/Screenshot-copy.png" width="100%">
+  <img src="https://github.com/Vidi005/Static-Website-AI-Generator/blob/main/Screenshots/Screenshot-copy.png" width="100%">
 </p>
 
-#### Using SWAG:
-1. Open the SWAG Web App in your browser
+#### Using Static Website AI Generator:
+1. Open the Static Website AI Generator Web App in your browser
 2. Paste your API key into the designated field
 <p align="center">
-  <img src="https://github.com/Vidi005/SWAG/blob/main/Screenshots/Screenshot-swag.png" width="100%">
+  <img src="https://github.com/Vidi005/Static-Website-AI-Generator/blob/main/Screenshots/Screenshot-swag.png" width="100%">
 </p>
 3. Note that prompts entered using the free tier may be utilized by Gemini AI to improve their model quality.
 
 ### Web App URLs
-- <a href="https://swag-preview.vercel.app">swag-preview.vercel.app</a>
-- <a href="https://swag-preview.pages.dev">swag-preview.pages.dev</a>
+- <a href="https://static-website-ai-generator.vercel.app">static-website-ai-generator.vercel.app</a>
+- <a href="https://static-website-ai-generator.pages.dev">static-website-ai-generator.pages.dev</a>
 
 ### Screenshots
 <p align="center">
-  <img src="https://github.com/Vidi005/SWAG/blob/main/Screenshots/SWAG-1-ezgif.com-optimize.gif" width="100%">
-  <img src="https://github.com/Vidi005/SWAG/blob/main/Screenshots/SWAG-2-ezgif.com-optimize.gif" width="100%">
+  <img src="https://github.com/Vidi005/Static-Website-AI-Generator/blob/main/Screenshots/SWAG-1-ezgif.com-optimize.gif" width="100%">
+  <img src="https://github.com/Vidi005/Static-Website-AI-Generator/blob/main/Screenshots/SWAG-2-ezgif.com-optimize.gif" width="100%">
 </p>
 
 ### Features
