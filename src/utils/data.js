@@ -16,6 +16,11 @@ const geminiAIModels = [
     isSupportSystemInstructions: true
   },
   {
+    variant: 'gemini-2.0-flash-lite',
+    input: 'multimodal',
+    isSupportSystemInstructions: true
+  },
+  {
     variant: 'gemini-1.5-pro',
     input: 'multimodal',
     isSupportSystemInstructions: true
