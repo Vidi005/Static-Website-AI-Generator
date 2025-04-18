@@ -11,11 +11,6 @@ const isStorageExist = content => {
 
 const geminiAIModels = [
   {
-    variant: 'gemini-2.5-pro-exp-03-25',
-    input: 'multimodal',
-    isSupportSystemInstructions: true
-  },
-  {
     variant: 'gemini-2.0-flash',
     input: 'multimodal',
     isSupportSystemInstructions: true

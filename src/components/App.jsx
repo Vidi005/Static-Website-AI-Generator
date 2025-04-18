@@ -212,6 +212,7 @@ class App extends React.Component {
         <Routes>
           <Route path="/" element={
             <HomePage
+              t={i18n.t}
               state={this.state}
               setDisplayMode={this.setDisplayMode.bind(this)}
               changeLanguage={this.changeLanguage.bind(this)}
@@ -227,6 +228,7 @@ class App extends React.Component {
           }/>
           <Route path="/prompt" element={
             <HomePage
+              t={i18n.t}
               state={this.state}
               setDisplayMode={this.setDisplayMode.bind(this)}
               changeLanguage={this.changeLanguage.bind(this)}
