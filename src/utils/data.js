@@ -34,11 +34,6 @@ const geminiAIModels = [
     variant: 'gemini-1.5-flash-8b',
     input: 'multimodal',
     isSupportSystemInstructions: true
-  },
-  {
-    variant: 'gemini-1.0-pro',
-    input: 'text',
-    isSupportSystemInstructions: false
   }
 ]
 

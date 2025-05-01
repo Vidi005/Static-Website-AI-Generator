@@ -3,7 +3,7 @@ import DropZoneContainer from "./DropZoneContainer"
 import { Listbox, Popover, Transition } from "@headlessui/react"
 import SidebarContainer from "./SidebarContainer"
 
-const PromptContainer = ({ t, isDataWillBeSaved, state, fileInputRef, tempSettingInfoRef, tempSettingContentInfoRef, showTempSettingInfo, handleTempChange, changeGeminiModel, handleCurrentPromptChange, handleLastPromptChange, pickCurrentImages, takeScreenshot, pickLastImages, removeCurrentImage, removeLastImages, generatePrompt, regeneratePrompt, stopPrompt, onEditHandler, onCancelHandler, toggleSidebar, searchHandler, sortHandler, closeSidebar, deleteAllPrompts, deleteSelectedPrompt }) => (
+const PromptContainer = ({ t, isDataWillBeSaved, state, fileInputRef, tempSettingInfoRef, tempSettingContentInfoRef, showTempSettingInfo, handleTempChange, changeGeminiModel, handleCurrentPromptChange, handleLastPromptChange, pickCurrentImages, pickLastImages, removeCurrentImage, removeLastImages, generatePrompt, regeneratePrompt, stopPrompt, onEditHandler, onCancelHandler, toggleSidebar, searchHandler, sortHandler, closeSidebar, deleteAllPrompts, deleteSelectedPrompt }) => (
   <article className="flex flex-auto flex-col h-[60vh] lg:h-full bg-cyan-100 dark:bg-gray-800 duration-200">
     <section className="flex flex-nowrap items-center justify-between w-full border-b border-b-cyan-900 dark:border-b-white py-0.5 overflow-x-auto duration-200">
       <h5 className="whitespace-nowrap px-1 text-cyan-900 dark:text-white duration-200">{t('prompt_generator')}</h5>
@@ -154,12 +154,6 @@ const PromptContainer = ({ t, isDataWillBeSaved, state, fileInputRef, tempSettin
               <img className="dark:hidden object-contain w-10" src={`${import.meta.env.BASE_URL}images/import-image-icon.svg`} alt="Import Image" />
               <img className="hidden dark:block object-contain w-10" src={`${import.meta.env.BASE_URL}images/import-image-icon-dark.svg`} alt="Import Image" />
             </label>
-            {navigator.mediaDevices && innerWidth > 640 &&
-              <button title="Screen Capture" className="btn-screenshot hover:bg-cyan-100 dark:hover:bg-gray-700 active:bg-cyan-300 dark:active:bg-gray-500 p-2 duration-200 rounded-full" onClick={takeScreenshot} disabled={state.isGenerating || state.isLoading || state.selectedModel?.input !== 'multimodal' || state.currentImgURLs?.length >= 10}>
-                <img className="dark:hidden object-contain w-10" src={`${import.meta.env.BASE_URL}images/screenshot-icon.svg`} alt="Screen Capture" />
-                <img className="hidden dark:block object-contain w-10" src={`${import.meta.env.BASE_URL}images/screenshot-icon-dark.svg`} alt="Screen Capture" />
-              </button>
-            }
             <textarea onChange={handleCurrentPromptChange} placeholder={t('create_new_prompt')} value={state.currentPrompt} rows="2" className="grow border border-cyan-700 dark:border-gray-200 bg-white dark:bg-black w-full mx-2 p-2 text-black dark:text-white rounded-md md:rounded-lg duration-200" disabled={state.isGenerating || state.isLoading} required></textarea>
             {
               state.isGenerating

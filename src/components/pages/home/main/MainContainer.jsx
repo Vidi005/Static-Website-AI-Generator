@@ -368,57 +368,6 @@ class MainContainer extends React.Component {
     }
   }
 
-  async takeScreenshot() {
-    try {
-      const captureStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: false
-      })
-      const videoElement = document.createElement('video')
-      videoElement.srcObject = captureStream
-      videoElement.autoplay = true
-      await new Promise(resolve => {
-        videoElement.onloadedmetadata = () => {
-          videoElement.width = videoElement.videoWidth
-          videoElement.height = videoElement.videoHeight
-          resolve()
-        }
-      })
-      const canvas = document.createElement('canvas')
-      canvas.width = videoElement.videoWidth
-      canvas.height = videoElement.videoHeight
-      const ctx = canvas.getContext('2d')
-      ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height)
-      canvas.toBlob(blob => {
-        if (blob) {
-          let imageFile = new File([blob], `Screenshot-${+new Date()}.png`, { type: 'image/png' })
-          this.setState(prevState => {
-            const currentImgFiles = [...prevState.currentImgFiles, imageFile]
-            if (currentImgFiles.length > 10) {
-              Swal.fire({
-                icon: 'error',
-                title: this.props.t('max_files_exceeded.0'),
-                text: this.props.t('max_files_exceeded.1'),
-                confirmButtonColor: 'blue',
-                confirmButtonText: this.props.t('ok')
-              })
-              return
-            }
-            else return ({ currentImgFiles: currentImgFiles })
-          }, () => imageFile = null)
-        }
-      }, 'image/png')
-      captureStream.getVideoTracks().forEach(track => track.stop())
-    } catch (error) {
-      Swal.fire({
-        title: this.props.t('capture_error'),
-        text: error.message,
-        icon: 'error',
-        confirmButtonColor: 'blue'
-      })
-    }
-  }
-
   pickLastImages(imgFiles) {
     if (imgFiles.length === 0) return
     const validImageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif']
@@ -1044,7 +993,6 @@ class MainContainer extends React.Component {
             handleCurrentPromptChange={this.handleCurrentPromptChange.bind(this)}
             handleLastPromptChange={this.handleLastPromptChange.bind(this)}
             pickCurrentImages={this.pickCurrentImages.bind(this)}
-            takeScreenshot={this.takeScreenshot.bind(this)}
             pickLastImages={this.pickLastImages.bind(this)}
             removeCurrentImage={this.removeCurrentImage.bind(this)}
             removeLastImages={this.removeLastImages.bind(this)}
