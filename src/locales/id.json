@@ -57,6 +57,8 @@
     "download_fail": "Tidak Dapat Mengunduh File",
     "web_preview_title": "Tampilan Situs",
     "web_preview_info": "Tidak Ada yang Ditampilkan.",
+    "thinking": "Sedang Berpikir...",
+    "thinking_support_info": "Model ini tidak Mendukung Reasioning",
     "go_to_home": "<- Kembali ke Halaman Utama",
     "reset_user_data": "Reset Data Pengguna",
     "browser_warning": "Browser Anda tidak mendukung Local Storage/Cookies!\nSilakan aktifkan cookies di peramban Anda atau matikan mode incognito.\nTerima kasih.",

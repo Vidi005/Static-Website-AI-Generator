@@ -57,6 +57,8 @@
     "download_fail": "Can't Download File",
     "web_preview_title": "Website Preview",
     "web_preview_info": "No Preview Available.",
+    "thinking": "Thinking...",
+    "thinking_support_info": "This Model Doesn't Support Reasoning",
     "go_to_home": "<- Go to Home",
     "reset_user_data": "Reset User Data",
     "browser_warning": "Your browser does not support Local Storage/Cookies!\nPlease enable cookies in your browser settings or disable incognito mode.\nThank you.",

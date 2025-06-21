@@ -11,29 +11,46 @@ const isStorageExist = content => {
 
 const geminiAIModels = [
   {
+    variant: 'gemini-2.5-pro',
+    input: 'multimodal',
+    isSupportSystemInstructions: true,
+    isSupportThinkingProcess: true
+  },
+  {
+    variant: 'gemini-2.5-flash',
+    input: 'multimodal',
+    isSupportSystemInstructions: true,
+    isSupportThinkingProcess: true
+  },
+  {
     variant: 'gemini-2.0-flash',
     input: 'multimodal',
-    isSupportSystemInstructions: true
+    isSupportSystemInstructions: true,
+    isSupportThinkingProcess: true
   },
   {
     variant: 'gemini-2.0-flash-lite',
     input: 'multimodal',
-    isSupportSystemInstructions: true
+    isSupportSystemInstructions: true,
+    isSupportThinkingProcess: false
   },
   {
     variant: 'gemini-1.5-pro',
     input: 'multimodal',
-    isSupportSystemInstructions: true
+    isSupportSystemInstructions: true,
+    isSupportThinkingProcess: false
   },
   {
     variant: 'gemini-1.5-flash',
     input: 'multimodal',
-    isSupportSystemInstructions: true
+    isSupportSystemInstructions: true,
+    isSupportThinkingProcess: false
   },
   {
     variant: 'gemini-1.5-flash-8b',
     input: 'multimodal',
-    isSupportSystemInstructions: true
+    isSupportSystemInstructions: true,
+    isSupportThinkingProcess: false
   }
 ]
 

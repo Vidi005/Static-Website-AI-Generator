@@ -88,9 +88,9 @@ const PreviewContainer = ({ t, iframeRef, isLoading, isGenerating, responseResul
     )
   } else {
     return (
-      <article className="flex flex-col h-[60vh] lg:h-full bg-white dark:bg-black duration-200">
-        <h5 className="border-b border-b-black dark:border-b-white p-1 text-black dark:text-white duration-200">{t('web_preview_title')}</h5>
-        <p className="grow grid items-center justify-center w-full text-center text-black dark:text-white duration-200">{responseResult}</p>
+      <article className="text-content flex flex-col flex-nowrap justify-between border-b border-b-black dark:border-b-white overflow-x-auto h-[60vh] lg:h-full bg-white dark:bg-black duration-200">
+        <h5 className={`sticky top-0 border-b border-b-black dark:border-b-white bg-white/50 dark:bg-black/20 backdrop-blur-sm p-1 text-black dark:text-white duration-200 ${isLoading || isGenerating ? 'text-center' : ''}`}>{isLoading || isGenerating ? t('thinking') : t('web_preview_title')}</h5>
+        <p className="grow grid items-center justify-center w-full p-2 md:p-4 text-justify text-black dark:text-white duration-200">{responseResult.replace(/\*/gm, '\n')}</p>
       </article>
     )
   }

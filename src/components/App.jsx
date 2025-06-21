@@ -17,6 +17,7 @@ class App extends React.Component {
       USER_API_STORAGE_KEY: 'USER_API_STORAGE_KEY',
       GEMINI_AI_TEMPERATURE_STORAGE_KEY: 'GEMINI_AI_TEMPERATURE_STORAGE_KEY',
       GEMINI_AI_MODEL_STORAGE_KEY: 'GEMINI_AI_MODEL_STORAGE_KEY',
+      THINKING_PROCESS_STORAGE_KEY: 'THINKING_PROCESS_STORAGE_KEY',
       CHUNKED_PROMPTS_STORAGE_KEY: 'CHUNKED_PROMPTS_STORAGE_KEY',
       USER_PROMPTS_STORAGE_KEY: 'USER_PROMPTS_STORAGE_KEY',
       USER_RESULTS_STORAGE_KEY: 'USER_RESULTS_STORAGE_KEY',
@@ -185,6 +186,7 @@ class App extends React.Component {
         localStorage.removeItem(this.state.USER_API_STORAGE_KEY)
         localStorage.removeItem(this.state.GEMINI_AI_TEMPERATURE_STORAGE_KEY)
         localStorage.removeItem(this.state.GEMINI_AI_MODEL_STORAGE_KEY)
+        localStorage.removeItem(this.state.THINKING_PROCESS_STORAGE_KEY)
         localStorage.removeItem(this.state.CHUNKED_PROMPTS_STORAGE_KEY)
         localStorage.removeItem(this.state.USER_PROMPTS_STORAGE_KEY)
         localStorage.removeItem(this.state.USER_RESULTS_STORAGE_KEY)

@@ -1,7 +1,6 @@
 import React from "react"
 import UserDataEntry from "../pop_up/UserDataEntry"
 import PromptContainer from "./PromptContainer"
-import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from "@google/generative-ai"
 import PreviewContainer from "./PreviewContainer"
 import Swal from "sweetalert2"
 import HtmlCodeContainer from "./HtmlCodeContainer"
@@ -11,6 +10,7 @@ import { fileToGenerativePart, geminiAIModels, getUserPrompt, isStorageExist } f
 import DownloadFileModal from "../pop_up/DownloadFileModal"
 import JSZip from "jszip"
 import { createIframeWorker } from "../../../../utils/worker"
+import { createUserContent, GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai"
 
 class MainContainer extends React.Component {
   constructor(props) {
@@ -22,14 +22,16 @@ class MainContainer extends React.Component {
       USER_PROMPTS_STORAGE_KEY: 'USER_PROMPTS_STORAGE_KEY',
       USER_RESULTS_STORAGE_KEY: 'USER_RESULTS_STORAGE_KEY',
       TEMP_WEB_PREVIEW_STORAGE_KEY: 'TEMP_WEB_PREVIEW_STORAGE_KEY',
+      THINKING_PROCESS_STORAGE_KEY: 'THINKING_PROCESS_STORAGE_KEY',
       savedApiKey: localStorage.getItem('USER_API_STORAGE_KEY'),
       temperature: 10,
       geminiAIModels: geminiAIModels,
-      selectedModel: geminiAIModels[0],
+      selectedModel: geminiAIModels[1],
       isLoading: false,
       isEditing: false,
       isGenerating: false,
       isSidebarOpened: false,
+      isThinkingEnabled: true,
       currentPrompt: '',
       lastPrompt: '',
       promptId: 0,
@@ -59,6 +61,7 @@ class MainContainer extends React.Component {
   componentDidMount() {
     this.loadSavedGeminiTemp()
     this.loadSavedGeminiModel()
+    this.loadSavedThinkingState()
     this.loadChunkedPrompts().then(() => {
       if (location.toString().includes('/prompt') && location.toString().includes('?id=')) this.loadPromptAndResult()
       setTimeout(() => {
@@ -118,6 +121,15 @@ class MainContainer extends React.Component {
     if (isStorageExist(this.props.t('browser_warning')) && (this.state.savedApiKey || this.props.state.isDataWillBeSaved)) {
       const geminiAIModel = localStorage.getItem(this.state.GEMINI_AI_MODEL_STORAGE_KEY) || this.state.selectedModel.variant
       this.setState({ selectedModel: geminiAIModels.find(model => model.variant === geminiAIModel) })
+    }
+  }
+
+  loadSavedThinkingState() {
+    if (isStorageExist(this.props.t('browser_warning')) && (this.state.savedApiKey || this.props.state.isDataWillBeSaved)) {
+      const geminiAIThinkingState = localStorage.getItem(this.state.THINKING_PROCESS_STORAGE_KEY)
+      if (geminiAIThinkingState !== null) {
+        this.setState({ isThinkingEnabled: JSON.parse(geminiAIThinkingState) })
+      }
     }
   }
 
@@ -368,6 +380,18 @@ class MainContainer extends React.Component {
     }
   }
 
+  toggleThinking() {
+    if (!this.state.isGenerating || !this.state.isLoading) {
+      this.setState({
+        isThinkingEnabled: !this.state.isThinkingEnabled
+      }, () => {
+        if (isStorageExist(this.props.t('browser_warning'))) {
+          localStorage.setItem(this.state.THINKING_PROCESS_STORAGE_KEY, this.state.isThinkingEnabled)
+        }
+      })
+    }
+  }
+
   pickLastImages(imgFiles) {
     if (imgFiles.length === 0) return
     const validImageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif']
@@ -427,13 +451,27 @@ class MainContainer extends React.Component {
       if (this.fileInputRef.current) this.fileInputRef.current.value = ''
     })
   }
-  
-  async postPrompt(model, userPrompt, inputImages) {
+
+  async postPrompt(userPrompt, inputImages) {
+    const safetySettings = [
+      {
+        category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+        threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE
+      },
+      {
+        category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH
+      }
+    ]
+    const genAI = new GoogleGenAI({ apiKey: this.props.state.geminiApiKey })
     let inputPrompt = ''
     if (this.state.selectedModel.isSupportSystemInstructions) inputPrompt = userPrompt
     else inputPrompt = `${this.props.t('system_instructions')} ${userPrompt}`
     try {
-      const { totalTokens } = await model.countTokens(inputPrompt)
+      const { totalTokens } = await genAI.models.countTokens({
+        model: this.state.selectedModel?.variant,
+        contents: inputPrompt
+      })
       if (totalTokens > 8192) {
         this.setState({
           responseResult: this.props.t('prompt_token_limit'),
@@ -443,38 +481,106 @@ class MainContainer extends React.Component {
         this.setState({ lastPrompt: userPrompt, lastImgFiles: inputImages }, () => this.saveUserPromptData())
         const abortController = new AbortController()
         this.setState({ abortController: abortController })
+        let text = ''
+        let thoughts = ''
         if (inputImages?.length > 0) {
-          const imageParts = await Promise.all([...inputImages?.map(inputImg => fileToGenerativePart(inputImg))])
-          const result = await model.generateContentStream([inputPrompt, ...imageParts], { signal: abortController.signal })
-          let text = ''
-          for await (const chunk of result.stream) {
+          const imageParts = await Promise.all([...(Array.isArray(inputImages) ? inputImages : []).map(inputImg => fileToGenerativePart(inputImg))])
+          const response = await genAI.models.generateContentStream({
+            model: this.state.selectedModel?.variant,
+            contents: [
+              createUserContent([inputPrompt, ...imageParts])
+            ],
+            config: {
+              systemInstruction: this.props.t('system_instructions'),
+              safetySettings: safetySettings,
+              temperature: (this.state.temperature * 0.1).toFixed(1),
+              thinkingConfig: {
+                includeThoughts: this.state.selectedModel.isSupportThinkingProcess && this.state.isThinkingEnabled,
+                thinkingBudget: this.state.selectedModel.isSupportThinkingProcess && this.state.isThinkingEnabled ? -1 : 0
+              },
+              abortSignal: abortController.signal
+            }
+          })
+          for await (const chunk of response) {
             if (abortController.signal.aborted) break
-            const chunkText = chunk.text()
-            text += chunkText
-            this.setState({
-              currentPrompt: '',
-              currentImgFiles: [],
-              currentImgURLs: [],
-              responseResult: text,
-              isLoading: false,
-              isGenerating: true
-            })
+            if (this.state.selectedModel.isSupportThinkingProcess && this.state.isThinkingEnabled) {
+              for (const part of chunk.candidates[0].content.parts) {
+                if (!part.text) {
+                  continue
+                } else if (part.thought) {
+                  thoughts += part.text
+                  this.setState({
+                    currentPrompt: '',
+                    currentImgFiles: [],
+                    currentImgURLs: [],
+                    responseResult: thoughts,
+                    isLoading: false,
+                    isGenerating: true
+                  })
+                } else {
+                  text += part.text
+                  this.setState({ responseResult: text })
+                }
+              }
+            } else {
+              text += chunk.text
+                this.setState({
+                  currentPrompt: '',
+                  currentImgFiles: [],
+                  currentImgURLs: [],
+                  responseResult: text,
+                  isLoading: false,
+                  isGenerating: true
+                })
+            }
           }
         } else {
-          const result = await model.generateContentStream(inputPrompt, { signal: abortController.signal })
-          let text = ''
-          for await (const chunk of result.stream) {
+          const response = await genAI.models.generateContentStream({
+            model: this.state.selectedModel?.variant,
+            contents: inputPrompt,
+            config: {
+              systemInstruction: this.props.t('system_instructions'),
+              safetySettings: safetySettings,
+              temperature: (this.state.temperature * 0.1).toFixed(1),
+              thinkingConfig: {
+                includeThoughts: this.state.selectedModel.isSupportThinkingProcess && this.state.isThinkingEnabled,
+                thinkingBudget: this.state.selectedModel.isSupportThinkingProcess && this.state.isThinkingEnabled ? -1 : 0
+              },
+              abortSignal: abortController.signal
+            }
+          })
+          for await (const chunk of response) {
             if (abortController.signal.aborted) break
-            const chunkText = chunk.text()
-            text += chunkText
-            this.setState({
-              currentPrompt: '',
-              currentImgFiles: [],
-              currentImgURLs: [],
-              responseResult: text,
-              isLoading: false,
-              isGenerating: true
-            })
+            if (this.state.selectedModel.isSupportThinkingProcess && this.state.isThinkingEnabled) {
+              for (const part of chunk.candidates[0].content.parts) {
+                if (!part.text) {
+                  continue
+                } else if (part.thought) {
+                  thoughts += part.text
+                  this.setState({
+                    currentPrompt: '',
+                    currentImgFiles: [],
+                    currentImgURLs: [],
+                    responseResult: thoughts,
+                    isLoading: false,
+                    isGenerating: true
+                  })
+                } else {
+                  text += part.text
+                  this.setState({ responseResult: text })
+                }
+              }
+            } else {
+              text += chunk.text
+                this.setState({
+                  currentPrompt: '',
+                  currentImgFiles: [],
+                  currentImgURLs: [],
+                  responseResult: text,
+                  isLoading: false,
+                  isGenerating: true
+                })
+            }
           }
         }
         this.setState({ isGenerating: false }, () => this.saveUserResultData())
@@ -507,33 +613,7 @@ class MainContainer extends React.Component {
         isCSSCodeCopied: false,
         isJSCodeCopied: false
       })
-      const safetySettings = [
-        {
-          category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE
-        },
-        {
-          category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-          threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH
-        }
-      ]
-      const genAI = new GoogleGenerativeAI(this.props.state.geminiApiKey)
-      if (this.state.selectedModel.isSupportSystemInstructions) {
-        const model = genAI.getGenerativeModel({
-          model: this.state.selectedModel?.variant,
-          systemInstruction: this.props.t('system_instructions'),
-          safetySettings,
-          generationConfig: { temperature: (this.state.temperature * 0.1).toFixed(1) }
-        })
-        this.postPrompt(model, this.state.currentPrompt, this.state.currentImgFiles)
-      } else {
-        const model = genAI.getGenerativeModel({
-          model: this.state.selectedModel?.variant,
-          safetySettings,
-          generationConfig: { temperature: (this.state.temperature * 0.1).toFixed(1) }
-        })
-        this.postPrompt(model, this.state.currentPrompt, this.state.currentImgFiles)
-      }
+      this.postPrompt(this.state.currentPrompt, this.state.currentImgFiles)
     } catch (error) {
       Swal.fire({
         icon: 'error',
@@ -558,33 +638,7 @@ class MainContainer extends React.Component {
         isCSSCodeCopied: false,
         isJSCodeCopied: false
       })
-      const safetySettings = [
-        {
-          category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-          threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE
-        },
-        {
-          category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-          threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH
-        }
-      ]
-      const genAI = new GoogleGenerativeAI(this.props.state.geminiApiKey)
-      if (this.state.selectedModel.isSupportSystemInstructions) {
-        const model = genAI.getGenerativeModel({
-          model: this.state.selectedModel?.variant,
-          systemInstruction: this.props.t('system_instructions'),
-          safetySettings,
-          generationConfig: { temperature: (this.state.temperature * 0.1).toFixed(1) }
-        })
-        this.postPrompt(model, this.state.lastPrompt, this.state.lastImgFiles)
-      } else {
-        const model = genAI.getGenerativeModel({
-          model: this.state.selectedModel?.variant,
-          safetySettings,
-          generationConfig: { temperature: (this.state.temperature * 0.1).toFixed(1) }
-        })
-        this.postPrompt(model, this.state.lastPrompt, this.state.lastImgFiles)
-      }
+      this.postPrompt(this.state.lastPrompt, this.state.lastImgFiles)
     } catch (error) {
       Swal.fire({
         icon: 'error',
@@ -616,8 +670,12 @@ class MainContainer extends React.Component {
   }
 
   scrollToBottom() {
+    if (!this.state.responseResult.includes('<html') && this.state.responseResult.length > 0) {
+      const textContent = document.querySelector('.text-content')
+      if (textContent) textContent.scrollTop = textContent.scrollHeight
+    }
     if (this.state.responseResult.includes('<html')) {
-      this.iframeRef.current.contentWindow.scrollTo(0, 999999)
+      this.iframeRef.current?.contentWindow?.scrollTo(0, 999999)
       const codeContent = document.querySelector('.html-code-content pre')
       if (codeContent) codeContent.scrollTop = codeContent.scrollHeight
     }
@@ -865,7 +923,7 @@ class MainContainer extends React.Component {
             this.setState({ isHTMLCodeCopied: false })
           })
       } else if (languageType === 'CSS') {
-        const cssOnly = `${this.state.responseResult.replace(/^[\s\S]*?<style>|<\/style>[\s\S]*$/gm, '').replace(/\n    /gm, '\n').replace(/```/gm, '').trim()}`
+        const cssOnly = `${this.state.responseResult.replace(/^[\s\S]*?<style>|<\/style>[\s\S]*$/gm, '').replace(/\n {4}/gm, '\n').replace(/```/gm, '').trim()}`
         navigator.clipboard.writeText(cssOnly)
           .then(() => this.setState({
             isCSSCodeCopied: true,
@@ -884,7 +942,7 @@ class MainContainer extends React.Component {
             this.setState({ isCSSCodeCopied: false })
           })
       } else if (languageType === 'JS') {
-        const jsOnly = `${this.state.responseResult.replace(/^[\s\S]*?<script>|<\/script>[\s\S]*$/gm, '').replace(/\n    /gm, '\n').replace(/```[\s\S]*$/gm, '').trim()}`
+        const jsOnly = `${this.state.responseResult.replace(/^[\s\S]*?<script>|<\/script>[\s\S]*$/gm, '').replace(/\n {4}/gm, '\n').replace(/```[\s\S]*$/gm, '').trim()}`
         navigator.clipboard.writeText(jsOnly)
           .then(() => this.setState({
             isJSCodeCopied: true,
@@ -935,8 +993,8 @@ class MainContainer extends React.Component {
     const zip = new JSZip()
     const htmlResponseResult = `<!DOCTYPE html>\n<html lang="en">\n  ${this.state.responseResult.replace(/^[\s\S]*?<html[\s\S]*?>|<\/html>[\s\S]*$/gm, '').replace(/\n/gm, '\n  ').replace(/```/gm, '').trim()}\n</html>`
     const normalizedHtml = htmlResponseResult.replace(/<style>[\s\S]*?<\/style>/gi, '<link rel="stylesheet" href="styles.css">').replace(/<script>[\s\S]*?<\/script>/gi, '<script src="scripts.js"></script>').replace(/<style>[\s\S]*?<\/style>/gi, '').trim()
-    const cssOnly = `${this.state.responseResult.replace(/^[\s\S]*?<style>|<\/style>[\s\S]*$/gm, '').replace(/\n    /gm, '\n').replace(/```/gm, '').trim()}`
-    const jsOnly = `${this.state.responseResult.replace(/^[\s\S]*?<script>|<\/script>[\s\S]*$/gm, '').replace(/\n    /gm, '\n').replace(/```[\s\S]*$/gm, '').trim()}`
+    const cssOnly = `${this.state.responseResult.replace(/^[\s\S]*?<style>|<\/style>[\s\S]*$/gm, '').replace(/\n {4}/gm, '\n').replace(/```/gm, '').trim()}`
+    const jsOnly = `${this.state.responseResult.replace(/^[\s\S]*?<script>|<\/script>[\s\S]*$/gm, '').replace(/\n {4}/gm, '\n').replace(/```[\s\S]*$/gm, '').trim()}`
     const blob = new Blob([this.state.responseResult], { type: 'application/zip' })
     const url = URL.createObjectURL(blob)
     zip.file('index.html', normalizedHtml)
@@ -993,6 +1051,7 @@ class MainContainer extends React.Component {
             handleCurrentPromptChange={this.handleCurrentPromptChange.bind(this)}
             handleLastPromptChange={this.handleLastPromptChange.bind(this)}
             pickCurrentImages={this.pickCurrentImages.bind(this)}
+            toggleThinking={this.toggleThinking.bind(this)}
             pickLastImages={this.pickLastImages.bind(this)}
             removeCurrentImage={this.removeCurrentImage.bind(this)}
             removeLastImages={this.removeLastImages.bind(this)}
