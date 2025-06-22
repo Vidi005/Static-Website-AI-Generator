@@ -26,7 +26,7 @@ const geminiAIModels = [
     variant: 'gemini-2.0-flash',
     input: 'multimodal',
     isSupportSystemInstructions: true,
-    isSupportThinkingProcess: true
+    isSupportThinkingProcess: null // Experimental support only
   },
   {
     variant: 'gemini-2.0-flash-lite',
