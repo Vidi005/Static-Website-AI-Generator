@@ -41,6 +41,7 @@ Before using this web app, please follow the steps below.
 - Localization support (currently available in English and Indonesian).
 - Configure AI temperature (randomness) response.
 - Select Gemini AI Models.
+- Enable/Disable Model Thinking/Reasioning (currently available for Gemini 2.5 Version only).
 - Prompt history sidebar (available when the "Save all user data to browser" checkbox is selected).
 - Edit the last user input prompt.
 - Realtime website preview (accessible from a new tab).
